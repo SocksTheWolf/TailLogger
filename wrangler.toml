@@ -17,3 +17,4 @@ required = ["WEBHOOK"]
 [vars]
 LOG_LEVEL = "warn"
 MAX_FIELDS = "6"
+LOG_ACTIVITY = "true"
