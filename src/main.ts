@@ -23,6 +23,7 @@ export default {
 
     // quick and dirty little log filter system for testing
     const logActivity = (str: string) => {
+      // @ts-ignore: wrangler gives booleans to strings. shut up
       if (env.LOG_ACTIVITY === "true") {
         console.log(str);
       }
@@ -40,7 +41,6 @@ export default {
       const erroredLogs = data.logs.filter((itm, _idx, _array) => { return getLogLevel(itm.level) >= settingsLogLevel; });
       // skip if we have no logs that match the right level
       if (erroredLogs.length == 0) {
-        logActivity(`No logs matched.`);
         continue;
       }
 
