@@ -1,0 +1,15 @@
+name = "taillogger"
+main = "src/main.ts"
+compatibility_date = "2026-08-20"
+send_metrics = false
+minify = true
+upload_source_maps = true
+preview_urls = false
+workers_dev = false
+
+[secrets]
+required = ["WEBHOOK"]
+
+[vars]
+LOG_LEVEL = "warn"
+MAX_FIELDS = "6"

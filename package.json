@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "private": "true",
+  "scripts": {
+    "types": "wrangler types src/@types/wrangler.d.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "wrangler": "^4.125.0"
+  },
+  "dependencies": {
+    "minimal-discord-webhook-node": "^1.0.1"
+  }
+}
