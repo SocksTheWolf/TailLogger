@@ -12,5 +12,8 @@ required = ["WEBHOOK"]
 
 [vars]
 LOG_LEVEL = "warn"
-MAX_FIELDS = "6"
-LOG_ACTIVITY = "true"
+# max is 20
+MAX_FIELDS = "8"
+
+# if we should be internally logging the tail system's activity
+LOG_INTERNAL_ACTIVITY = "false"

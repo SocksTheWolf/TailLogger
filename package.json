@@ -9,6 +9,7 @@
     "wrangler": "^4.125.0"
   },
   "dependencies": {
+    "just-has": "^2.3.0",
     "minimal-discord-webhook-node": "^1.0.1"
   },
   "overrides": {

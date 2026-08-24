@@ -1,30 +1,28 @@
+import has from "just-has";
 import { MessageBuilder, Webhook } from "minimal-discord-webhook-node";
+import { getColorLevel, getLogLevel } from "./levels";
 
-//debug, info, log, warn, error.
-const getLogLevel = (checkWith: string): number => {
-  switch(checkWith) {
-    case "error":
-      return 5;
-    case "warn":
-      return 4;
-    case "log":
-      return 3;
-    case "info":
-      return 2;
-    case "debug":
-      return 1;
-    default:
-      return 0;
-  }
+function processLogs(msg: MessageBuilder, log: TraceLog[]|TraceException[], maxFields: number=20) {
+  let numFields: number = 0;
+  log.forEach((itm, idx) => {
+    if (numFields > maxFields)
+      return;
+
+    // add the field
+    if (has(itm, "level"))
+      msg.addField(`Log #${idx}`, `${(itm as TraceLog).level} - ${JSON.stringify(itm.message)}`, false);
+    else
+      msg.addField(`Exception #${idx}`, `${JSON.stringify(itm.message)}`, false);
+    ++numFields;
+  });
 }
 
 export default {
   async tail(events: TraceItem[], env: Env, ctx: ExecutionContext) {
-
     // quick and dirty little log filter system for testing
     const logActivity = (str: string) => {
       // @ts-ignore: wrangler gives booleans to strings. shut up
-      if (env.LOG_ACTIVITY === "true") {
+      if (env.LOG_INTERNAL_ACTIVITY === "true") {
         console.log(str);
       }
     };
@@ -37,34 +35,40 @@ export default {
 
     // process events
     for (const data of events) {
+      let highestLogLevel: string = "";
       // get us logs that matter
-      const erroredLogs = data.logs.filter((itm, _idx, _array) => { return getLogLevel(itm.level) >= settingsLogLevel; });
+      const erroredLogs = data.logs.filter((itm, _idx, _array) => {
+        // capture what the highest log level we have in this event is
+        const curLogLevel = getLogLevel(itm.level);
+        if (curLogLevel > getLogLevel(highestLogLevel))
+          highestLogLevel = itm.level;
+
+        // and filter out everything else
+        return curLogLevel >= settingsLogLevel;
+      });
+
+      // our exception checker
+      const hasException: boolean = (data.exceptions.length > 0);
+
       // skip if we have no logs that match the right level
-      if (erroredLogs.length == 0) {
+      // and we don't have exceptions
+      if (erroredLogs.length == 0 && !hasException) {
         continue;
       }
 
       // Otherwise, relay the log files.
       const msg = new MessageBuilder();
-      msg.setAuthor(`Cloudflare ${data.scriptName} Logger`);
-      msg.setTitle(`${data.scriptName} Alert`);
-      msg.addField("Version", `${data.scriptVersion?.id ?? 0}`);
-      msg.addField("CPU Time", `${data.cpuTime}ms`);
-      msg.addField("Has Exceptions?", (data.exceptions.length > 0).toString());
+      msg.setTitle(`"${data.scriptName}" Application Alert`);
+      msg.addField("Exception?", hasException.toString(), true);
+      msg.addField("Time", `CPU: ${data.cpuTime}ms | Wall: ${data.wallTime}ms`, true);
       msg.setFooter(`Build version: ${data.scriptVersion?.id || 0} | Timestamp: ${data.eventTimestamp}`);
-      msg.setDescription(`${data.scriptName} ran into an ${env.LOG_LEVEL} or higher event!`);
-      // this is red
-      msg.setColor(14291731);
-      // allow us to put a cap on fields
-      let numFields = 0;
-      erroredLogs.forEach((itm, idx) => {
-        if (numFields > maxFields)
-          return;
-
-        // add the field
-        msg.addField(`Log #${idx}`, `${itm.level} - ${JSON.stringify(itm.message)}`, false);
-        ++numFields;
-      });
+      msg.setDescription(`${data.scriptName} triggered a ${env.LOG_LEVEL} or higher event!`);
+      // add logs
+      processLogs(msg, erroredLogs, (hasException) ? maxFields : maxFields*2);
+      // add exceptions
+      processLogs(msg, data.exceptions, maxFields);
+      // set the embed color based on highest log level
+      msg.setColor(getColorLevel(hasException ? "error" : highestLogLevel));
       logActivity(`Processed msg ${JSON.stringify(msg.getJSON())}`);
       // avoid all slowdowns, keep processing
       ctx.waitUntil(discordWebhook.send(msg));
