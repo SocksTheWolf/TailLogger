@@ -10,8 +10,12 @@ workers_dev = false
 [secrets]
 required = ["WEBHOOK"]
 
+[[kv_namespaces]]
+binding = "LOG_SETTINGS"
+id = "939b548639af4122907b6582dd3ab81d"
+
 [vars]
-LOG_LEVEL = "warn"
+DEFAULT_LOG_LEVEL = "log"
 # max is 20
 MAX_FIELDS = "8"
 

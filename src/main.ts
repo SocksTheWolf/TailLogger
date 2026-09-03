@@ -29,12 +29,16 @@ export default {
 
     // configs
     const maxFields: number = Number(env.MAX_FIELDS);
-    const settingsLogLevel: number = getLogLevel(env.LOG_LEVEL);
     // webhook
     const discordWebhook = new Webhook({url: env.WEBHOOK, throwErrors: false, retryOnLimit: false});
 
     // process events
     for (const data of events) {
+      const projectLogLevel: string = (data.scriptName ?
+        await env.LOG_SETTINGS.get(data.scriptName?.toLowerCase(), "text") : undefined)
+        ?? env.DEFAULT_LOG_LEVEL;
+
+      const settingsLogLevel: number = getLogLevel(projectLogLevel);
       let highestLogLevel: string = "";
       // get us logs that matter
       const erroredLogs = data.logs.filter((itm, _idx, _array) => {
@@ -52,8 +56,16 @@ export default {
 
       // skip if we have no logs that match the right level
       // and we don't have exceptions
-      if (erroredLogs.length == 0 && !hasException) {
-        continue;
+      if (!hasException) {
+        if (erroredLogs.length == 0) {
+          continue;
+        }
+        // if we only want to see exceptions, filter out if we don't have an exception
+        // (exception logs write as errors)
+        if (projectLogLevel === "exception")
+          continue;
+      } else {
+        highestLogLevel = "exception";
       }
 
       // Otherwise, relay the log files.
@@ -62,13 +74,13 @@ export default {
       msg.addField("Exception?", hasException.toString(), true);
       msg.addField("Time", `CPU: ${data.cpuTime}ms | Wall: ${data.wallTime}ms`, true);
       msg.setFooter(`Build version: ${data.scriptVersion?.id || 0} | Timestamp: ${data.eventTimestamp}`);
-      msg.setDescription(`${data.scriptName} triggered a ${env.LOG_LEVEL} or higher event!`);
+      msg.setDescription(`${data.scriptName} triggered a ${projectLogLevel} or higher event!`);
       // add logs
       processLogs(msg, erroredLogs, (hasException) ? maxFields : maxFields*2);
       // add exceptions
       processLogs(msg, data.exceptions, maxFields);
       // set the embed color based on highest log level
-      msg.setColor(getColorLevel(hasException ? "error" : highestLogLevel));
+      msg.setColor(getColorLevel(highestLogLevel));
       logActivity(`Processed msg ${JSON.stringify(msg.getJSON())}`);
       // avoid all slowdowns, keep processing
       ctx.waitUntil(discordWebhook.send(msg));

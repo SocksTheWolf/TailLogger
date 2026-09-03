@@ -1,6 +1,7 @@
 //debug, info, log, warn, error.
 export const getLogLevel = (checkWith: string): number => {
   switch(checkWith) {
+    case "exception":
     case "error":
       return 5;
     case "warn":
@@ -12,12 +13,14 @@ export const getLogLevel = (checkWith: string): number => {
     case "debug":
       return 1;
     default:
+    case "all":
       return 0;
   }
 }
 
 export const getColorLevel = (logLevel: string): number => {
   switch(logLevel) {
+    case "exception":
     case "error":
       return 14291731;
     case "warn":
