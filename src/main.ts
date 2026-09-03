@@ -38,17 +38,20 @@ export default {
         await env.LOG_SETTINGS.get(data.scriptName?.toLowerCase(), "text") : undefined)
         ?? env.DEFAULT_LOG_LEVEL;
 
-      const settingsLogLevel: number = getLogLevel(projectLogLevel);
+      const logLevelValue: number = getLogLevel(projectLogLevel);
       let highestLogLevel: string = "";
+      let highestLogNum: number|undefined;
       // get us logs that matter
       const erroredLogs = data.logs.filter((itm, _idx, _array) => {
         // capture what the highest log level we have in this event is
         const curLogLevel = getLogLevel(itm.level);
-        if (curLogLevel > getLogLevel(highestLogLevel))
+        if (highestLogNum === undefined || curLogLevel > highestLogNum) {
+          // cache it
+          highestLogNum = curLogLevel;
           highestLogLevel = itm.level;
-
+        }
         // and filter out everything else
-        return curLogLevel >= settingsLogLevel;
+        return curLogLevel >= logLevelValue;
       });
 
       // our exception checker
