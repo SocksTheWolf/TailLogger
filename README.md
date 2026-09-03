@@ -1,4 +1,9 @@
-# TailLogger
+# Discord TailLogger
+
+[![Deploy Cloudflare Workers](https://img.shields.io/badge/cloudflare_workers-deploy-F38020?logo=cloudflareworkers)](https://deploy.workers.cloudflare.com/?url=https://github.com/socksthewolf/taillogger)
+[![Tip](https://img.shields.io/badge/tip-KoFi?style=flat&logo=ko-fi&label=Support&color=orange&logoColor=white)](https://wolf.stream/tip)
+
+---
 
 ![Example Webhook Logging Output](.github/image.png)
 
