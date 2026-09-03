@@ -25,7 +25,6 @@ Add to projects by adding the following to your producer worker:
 ```toml
 [[tail_consumers]]
 service = "taillog"
-remote = false
 ```
 
 ---
