@@ -21,7 +21,7 @@ export default {
   async tail(events: TraceItem[], env: Env, ctx: ExecutionContext) {
     // quick and dirty little log filter system for testing
     const logActivity = (str: string) => {
-      // @ts-ignore: wrangler gives booleans to strings. shut up
+      // @ts-expect-error: wrangler gives booleans to strings. shut up
       if (env.LOG_INTERNAL_ACTIVITY === "true") {
         console.log(str);
       }
