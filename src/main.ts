@@ -2,7 +2,9 @@ import has from "just-has";
 import { MessageBuilder, Webhook } from "minimal-discord-webhook-node";
 import { getColorLevel, getLogLevel } from "./levels";
 
-function processLogs(msg: MessageBuilder, log: TraceLog[]|TraceException[], maxFields: number=20) {
+// max amount of fields in a single discord msg
+const discord_max_fields: number = 20;
+function processLogs(msg: MessageBuilder, log: TraceLog[]|TraceException[], maxFields: number=discord_max_fields): number {
   let numFields: number = 0;
   log.forEach((itm, idx) => {
     if (numFields > maxFields)
@@ -15,6 +17,7 @@ function processLogs(msg: MessageBuilder, log: TraceLog[]|TraceException[], maxF
       msg.addField(`Exception #${idx}`, `${JSON.stringify(itm.message)}`, false);
     ++numFields;
   });
+  return numFields;
 }
 
 export default {
@@ -78,10 +81,11 @@ export default {
       msg.addField("Time", `CPU: ${data.cpuTime}ms | Wall: ${data.wallTime}ms`, true);
       msg.setFooter(`Build version: ${data.scriptVersion?.id || 0} | Timestamp: ${data.eventTimestamp}`);
       msg.setDescription(`${data.scriptName} triggered a ${projectLogLevel} or higher event!`);
+      let usedFields = 2;
       // add logs
-      processLogs(msg, erroredLogs, (hasException) ? maxFields : maxFields*2);
+      usedFields += processLogs(msg, erroredLogs, (hasException) ? maxFields : discord_max_fields - usedFields);
       // add exceptions
-      processLogs(msg, data.exceptions, maxFields);
+      processLogs(msg, data.exceptions, discord_max_fields - usedFields);
       // set the embed color based on highest log level
       msg.setColor(getColorLevel(highestLogLevel));
       logActivity(`Processed msg ${JSON.stringify(msg.getJSON())}`);
