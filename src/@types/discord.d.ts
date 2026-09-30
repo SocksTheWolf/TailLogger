@@ -54,7 +54,7 @@ declare module "minimal-discord-webhook-node" {
     setText(text: string): this;
     setAuthor(author?: string, authorImage?: string, authorUrl?: string): this;
     setTitle(title: string): this;
-    setUrl(url: string): this;
+    setURL(url: string): this;
     setThumbnail(thumbnailUrl: string): this;
     setImage(image: string): this;
     setTimestamp(): this;
