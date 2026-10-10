@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "wrangler": "^4.148.0"
+    "wrangler": "^4.149.0"
   },
   "dependencies": {
     "just-has": "^2.3.0",
@@ -18,9 +18,6 @@
     },
     "@actions/http-client": {
       "undici": "^7.29.1"
-    },
-    "miniflare": {
-      "sharp": "0.35.5"
     }
   },
   "optionalDependencies": {
