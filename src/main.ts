@@ -1,4 +1,5 @@
 import has from "just-has";
+import unique from "just-unique";
 import { MessageBuilder, Webhook } from "minimal-discord-webhook-node";
 import { getColorLevel, getLogLevel } from "./levels";
 
@@ -35,10 +36,20 @@ export default {
     // webhook
     const discordWebhook = new Webhook({url: env.WEBHOOK, throwErrors: false, retryOnLimit: false});
 
+    // pre-lookup message events for categories
+    const lookupArray = [];
+    for (const data of events) {
+      if (data.scriptName) {
+        lookupArray.push(data.scriptName?.toLowerCase());
+      }
+    }
+
+    // fetch all KV values at once
+    const logBook = await env.LOG_SETTINGS.get(unique(lookupArray, false, true), "text");
+
     // process events
     for (const data of events) {
-      const projectLogLevel: string = (data.scriptName ?
-        await env.LOG_SETTINGS.get(data.scriptName?.toLowerCase(), "text") : undefined)
+      const projectLogLevel: string = (data.scriptName ? logBook.get(data.scriptName?.toLowerCase()) : undefined)
         ?? env.DEFAULT_LOG_LEVEL;
 
       const logLevelValue: number = getLogLevel(projectLogLevel);
